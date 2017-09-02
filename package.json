@@ -1,0 +1,31 @@
+{
+  "name": "solais-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xmhscratch/solais-server.git"
+  },
+  "author": "xmhscratch",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xmhscratch/solais-server/issues"
+  },
+  "homepage": "https://github.com/xmhscratch/solais-server#readme",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "compression": "^1.7.0",
+    "cookie-parser": "^1.4.3",
+    "ejs": "^2.5.7",
+    "express": "^4.15.4",
+    "express-session": "^1.15.5",
+    "html-minifier": "^3.5.3",
+    "morgan": "^1.8.2",
+    "serve-favicon": "^2.4.3",
+    "sitemap": "^1.13.0"
+  }
+}
