@@ -2,7 +2,7 @@ const DEFAULT_HOSTNAME = '0.0.0.0'
 const DEFAULT_PORT = 3000
 const FAVICON_FILE_NAME = 'favicon.ico'
 
-class Server extends system.module {
+class Server extends System.Module {
 
     static get $ID() {
         return 'server'
@@ -69,12 +69,16 @@ class Server extends system.module {
     }
 
     initialize(done) {
-        global.server = this
+        global.$server = this
 
         process.nextTick(() => {
             this.setup()
+            global.$appl = this.app
+
+            return done()
         })
-        return done()
+
+        return this
     }
 
     getBasePath() {
@@ -95,10 +99,10 @@ class Server extends system.module {
         this._faviconPath = this.getFaviconPath()
 
         this._app = new Server.App('/', this.basePath)
-        this._http = Server.Http.createServer(this._app.engine)
+        this._http = Server.Http.createServer(this._app)
 
-        this._app.engine.set('port', this.port)
-        this._app.engine.use(Server.Favicon(this.faviconPath))
+        this._app.set('port', this.port)
+        this._app.use(Server.Favicon(this.faviconPath))
     }
 
     start() {

@@ -98,10 +98,8 @@ class App {
         this._loadMiddware(config('middwares', []))
         this._registerHelper()
 
-        this.initialize()
+        return this._engine
     }
-
-    initialize() {}
 
     createEngine() {
         let engine = App.Express()
