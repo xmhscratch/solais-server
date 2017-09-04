@@ -82,11 +82,11 @@ class Server extends System.Module {
     }
 
     getBasePath() {
-        return system.dcfg.getBasePath()
+        return $dcfg.getBasePath()
     }
 
     getFaviconPath() {
-        return __(
+        return fs(
             this.getBasePath(),
             FAVICON_FILE_NAME
         ).root
@@ -99,14 +99,15 @@ class Server extends System.Module {
         this._faviconPath = this.getFaviconPath()
 
         this._app = new Server.App('/', this.basePath)
-        this._http = Server.Http.createServer(this._app)
-
         this._app.set('port', this.port)
-        this._app.use(Server.Favicon(this.faviconPath))
+        // this._app.use(Server.Favicon(this.faviconPath))
     }
 
     start() {
-        return this.http.listen(this.port, this.hostname)
+        this._http = Server.Http.createServer(this._app)
+        this._http.listen(this.port, this.hostname)
+
+        return this
     }
 }
 

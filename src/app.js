@@ -86,7 +86,7 @@ class App {
 
     constructor(mountPoint, basePath) {
         this._mountPoint = mountPoint || '/'
-        this._basePath = __(basePath).root
+        this._basePath = fs(basePath).root
 
         this._viewPath = this.getViewPath()
         this._controllerPath = this.getControllerPath()
@@ -184,7 +184,7 @@ class App {
 
     createControllers() {
         return _.chain(
-                __(this.controllerPath).getItems(/\.http\.js$/g)
+                fs(this.controllerPath).getItems(/\.http\.js$/g)
             )
             .reduce((result, filePaths, path) => {
                 const routeFiles = _.map(filePaths, (filePath) => {
@@ -262,21 +262,21 @@ class App {
     }
 
     getViewPath() {
-        return __(
+        return fs(
             this.basePath,
             VIEW_PATH_NAME
         ).root
     }
 
     getControllerPath() {
-        return __(
+        return fs(
             this.basePath,
             CONTROLLER_PATH_NAME
         ).root
     }
 
     getMiddwarePath() {
-        return __(
+        return fs(
             this.basePath,
             CONTROLLER_PATH_NAME,
             'index.js'
@@ -284,7 +284,7 @@ class App {
     }
 
     getHelperPath() {
-        return __(
+        return fs(
             this.basePath,
             HELPER_PATH_NAME
         ).root
@@ -320,7 +320,7 @@ class App {
 
     _registerHelper() {
         const helpers = {}
-        const fileItems = __(this.helperPath).getItems(/\.js$/g)
+        const fileItems = fs(this.helperPath).getItems(/\.js$/g)
 
         const addHelper = (keyPath, func) => {
             helpers[keyPath] = func
