@@ -25,6 +25,7 @@
     "express-session": "^1.15.5",
     "html-minifier": "^3.5.3",
     "morgan": "^1.8.2",
+    "rebirth": "^1.0.2",
     "serve-favicon": "^2.4.3",
     "sitemap": "^1.13.0"
   }
