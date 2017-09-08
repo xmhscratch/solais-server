@@ -102,7 +102,7 @@ class App {
     }
 
     createEngine() {
-        let engine = App.Express()
+        const engine = App.Express()
 
         if (config('system.development', true)) {
             engine.use(App.Logger('dev'))
@@ -223,18 +223,16 @@ class App {
                     )
                 }
 
-                _.forEach(rConfig, (methods, routePath) => {
-                    routePath = node.path
-                        .join(item.mountPoint, routePath)
+                _.forEach(rConfig, (methods, routeKey) => {
+                    const routePath = node.path
+                        .join(item.mountPoint, routeKey)
                         .replace(/([\/\\]+)/g, String('/'))
 
                     const routerRoute = router.route(routePath)
                     const allowedMethods = this._getRequestAllowedMethods()
 
-                    _.forEach(methods, (actions, method) => {
-                        method = _.words(method, /[^, ]+/g)
-
-                        _.forEach(method, (methodName) => {
+                    _.forEach(methods, (actions, methodKey) => {
+                        _.forEach(_.words(methodKey, /[^, ]+/g), (methodName, methodIndex) => {
                             methodName = methodName.toLowerCase()
                             const isAllowed = _.includes(allowedMethods, methodName)
 
@@ -242,16 +240,23 @@ class App {
                                 return
                             }
 
-                            actions = _.chain(actions)
-                                .castArray()
-                                .map((action) => {
-                                    return function() {
-                                        return action.apply(this, arguments)
-                                    }
-                                })
-                                .value()
+                            actions = _.castArray(actions)
+                            const filters = actions.length > 1
+                                ? _.initial(actions)
+                                : []
+                            const action = _.last(actions)
 
-                            routerRoute[methodName].apply(routerRoute, actions)
+                            _.forEach(filters, () => {
+                                routerRoute.all(function(req, res, next) {
+                                    const middwarePath = `${routeKey}.${methodKey}.${methodIndex}`
+                                    const middwareFunc = _.get(require(item.root), middwarePath)
+
+                                    return _.isFunction(middwareFunc) ? middwareFunc.apply(this, arguments) : next()
+                                })
+                            }, this)
+
+                            return routerRoute[methodName](action)
+
                         })
                     })
                 })

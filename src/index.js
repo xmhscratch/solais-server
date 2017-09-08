@@ -75,10 +75,13 @@ class Server extends System.Module {
     initialize(done) {
         global.$server = this
 
+        this._hostname = config('server.hostname', DEFAULT_HOSTNAME)
+        this._port = config('server.port', DEFAULT_PORT)
+        this._basePath = this.getBasePath()
+        this._faviconPath = this.getFaviconPath()
+
         process.nextTick(() => {
             this.setup()
-            global.$appl = this.app
-
             return done()
         })
 
@@ -97,24 +100,62 @@ class Server extends System.Module {
     }
 
     setup() {
-        this._hostname = config('server.hostname', DEFAULT_HOSTNAME)
-        this._port = config('server.port', DEFAULT_PORT)
-        this._basePath = this.getBasePath()
-        this._faviconPath = this.getFaviconPath()
+        if (this._http) {
+            this._http.close()
 
-        this._app = new Server.App('/', this.basePath)
-        this._app.set('port', this.port)
-        // this._app.use(Server.Favicon(this.faviconPath))
-    }
+            this._app = new Server.App('/', this.basePath)
+            this._app.set('port', this.port)
+            // this._app.use(Server.Favicon(this.faviconPath))
 
-    start() {
-        const watcher = new Server.Watcher(this.basePath)
+            global.$appl = this._app
+        }
 
         this._http = Server.Http.createServer(this._app)
-        this._http.listen(this.port, this.hostname)
+        process.nextTick(() => {
+            this._http.listen(this.port, this.hostname)
+        })
+
+        return this
+    }
+
+    start(isClusterMode = false) {
+        const cluster = require('cluster')
+
+        if (isClusterMode && cluster.isMaster) {
+            cluster.on('online', function(worker) {
+                console.log('Worker ' + worker.process.pid + ' is online');
+            })
+
+            cluster.on('exit', function(worker, code, signal) {
+                console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal)
+                cluster.fork()
+            })
+
+            const numWorkers = require('os').cpus().length
+            for (let i = 0; i < numWorkers; i++) {
+                cluster.fork()
+            }
+
+            console.log('Master cluster setting up ' + numWorkers + ' workers...')
+        } else {
+            this.setup()
+        }
+
+        return this
+    }
+
+    autoRefresh() {
+        const watcher = new Server.Watcher(this.basePath)
+
+        watcher.on('change', (filePath) => {
+            delete require.cache[filePath]
+            // Object.keys(require.cache).forEach(function(id) {
+            //     delete require.cache[id]
+            // })
+            this.setup()
+        })
 
         watcher.start()
-        return this
     }
 }
 

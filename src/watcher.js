@@ -1,25 +1,27 @@
-var watchman = require('fb-watchman')
-var client = new watchman.Client()
+const watchman = require('fb-watchman')
 
-class Watcher {
+class Watcher extends node.events {
 
     constructor(rootPath) {
+        super()
+
+        this.client = new watchman.Client()
         this.rootPath = rootPath
+
         return this
     }
 
     start() {
-        return client.capabilityCheck({
+        return this.client.capabilityCheck({
             optional: [],
             required: ['relative_root']
         }, (error, resp) => {
             if (error) {
-                client.end()
+                this.client.end()
                 throw error
             }
 
-            // Initiate the watch
-            client.command([
+            this.client.command([
                 'watch-project', this.rootPath
             ], (error, resp) => {
                 if (error) {
@@ -30,13 +32,12 @@ class Watcher {
                     console.log('warning: ', resp.warning)
                 }
 
-                console.log('watch established on ', resp.watch, ' relative_path', resp.relative_path)
-                this._makeSubscription(client, this.rootPath, resp.relative_path)
+                this._makeSubscription(resp.relative_path)
             })
         })
     }
 
-    _makeSubscription(client, watch, relative_path) {
+    _makeSubscription(relativePath) {
         const sub = {
             expression: ['allof',
                 ['not', ['match', 'node_modules/**/*', 'wholename']],
@@ -46,27 +47,31 @@ class Watcher {
             fields: ['name', 'size', 'mtime_ms', 'exists', 'type']
         }
 
-        if (relative_path) {
-            sub.relative_root = relative_path
+        if (relativePath) {
+            sub.relative_root = relativePath
         }
 
-        client.command([
-            'subscribe', watch, 'watcher', sub
+        this.client.command([
+            'subscribe', this.rootPath, 'watcher', sub
         ], (error, resp) => {
             if (error) {
                 console.error('failed to subscribe: ', error)
                 return
             }
-            console.log('subscription ' + resp.subscribe + ' established')
         })
 
-        client.on('subscription', (resp) => {
-            if (resp.subscription !== 'watcher') return
+        this.client.on('subscription', (resp) => {
+            if (resp.subscription !== 'watcher') {
+                return
+            }
 
             resp.files.forEach((file) => {
-                console.log('file changed: ' + file.name)
+                const filePath = node.path.resolve(resp.root, file.name)
+                this.emit('change', filePath)
             })
         })
+
+        return this
     }
 }
 
