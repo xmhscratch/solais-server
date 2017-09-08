@@ -28,6 +28,10 @@ class Server extends System.Module {
         return require('serve-favicon')
     }
 
+    static get Watcher() {
+        return require('./watcher')
+    }
+
     static get App() {
         return require('./app')
     }
@@ -104,9 +108,12 @@ class Server extends System.Module {
     }
 
     start() {
+        const watcher = new Server.Watcher(this.basePath)
+
         this._http = Server.Http.createServer(this._app)
         this._http.listen(this.port, this.hostname)
 
+        watcher.start()
         return this
     }
 }
