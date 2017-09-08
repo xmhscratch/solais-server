@@ -146,16 +146,12 @@ class Server extends System.Module {
 
     autoRefresh() {
         const watcher = new Server.Watcher(this.basePath)
-
         watcher.on('change', (filePath) => {
             delete require.cache[filePath]
-            // Object.keys(require.cache).forEach(function(id) {
-            //     delete require.cache[id]
-            // })
             this.setup()
         })
-
         watcher.start()
+        return this
     }
 }
 
