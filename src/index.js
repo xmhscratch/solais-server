@@ -68,10 +68,6 @@ class Server extends System.Module {
         return this._faviconPath
     }
 
-    constructor() {
-        super()
-    }
-
     initialize(done) {
         global.$server = this
 
@@ -80,12 +76,7 @@ class Server extends System.Module {
         this._basePath = this.getBasePath()
         this._faviconPath = this.getFaviconPath()
 
-        process.nextTick(() => {
-            this.setup()
-            return done()
-        })
-
-        return this
+        return this.setup(done)
     }
 
     getBasePath() {
@@ -99,23 +90,24 @@ class Server extends System.Module {
         ).root
     }
 
-    setup() {
+    setup(done = _.noop) {
         if (this._http) {
             this._http.close()
+        }
 
+        if (!this._app) {
             this._app = new Server.App('/', this.basePath)
             this._app.set('port', this.port)
             // this._app.use(Server.Favicon(this.faviconPath))
-
-            global.$appl = this._app
         }
 
         this._http = Server.Http.createServer(this._app)
         process.nextTick(() => {
+            global.$appl = this._app
             this._http.listen(this.port, this.hostname)
-        })
 
-        return this
+            return done()
+        })
     }
 
     start(isClusterMode = false) {
