@@ -60,8 +60,8 @@ class Server extends System.Module {
         return this._port
     }
 
-    get basePath() {
-        return this._basePath
+    get appPath() {
+        return this._appPath
     }
 
     get faviconPath() {
@@ -73,19 +73,19 @@ class Server extends System.Module {
 
         this._hostname = config('server.hostname', DEFAULT_HOSTNAME)
         this._port = config('server.port', DEFAULT_PORT)
-        this._basePath = this.getBasePath()
+        this._appPath = this.getAppPath()
         this._faviconPath = this.getFaviconPath()
 
         return this.setup(done)
     }
 
-    getBasePath() {
-        return $dcfg.getBasePath()
+    getAppPath() {
+        return node.path.dirname(require.main.filename)
     }
 
     getFaviconPath() {
         return fs(
-            this.getBasePath(),
+            this.getAppPath(),
             FAVICON_FILE_NAME
         ).root
     }
@@ -96,7 +96,7 @@ class Server extends System.Module {
         }
 
         if (!this._app) {
-            this._app = new Server.App('/', this.basePath)
+            this._app = new Server.App('/', this.appPath)
             this._app.set('port', this.port)
             // this._app.use(Server.Favicon(this.faviconPath))
         }
@@ -137,7 +137,7 @@ class Server extends System.Module {
     }
 
     autoRefresh() {
-        const watcher = new Server.Watcher(this.basePath)
+        const watcher = new Server.Watcher(this.appPath)
         watcher.on('change', (filePath) => {
             delete require.cache[filePath]
             this.setup()
