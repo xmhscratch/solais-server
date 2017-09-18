@@ -2,6 +2,8 @@ const VIEW_PATH_NAME = 'view'
 const CONTROLLER_PATH_NAME = 'controller'
 const HELPER_PATH_NAME = 'helper'
 
+const chalk = require('chalk')
+
 class App {
 
     //////////////////////////
@@ -191,13 +193,11 @@ class App {
                     const ctrlPath = filePath
                         .replace(/\.http\.js$/g, String())
                     const ctrlName = node.path.basename(ctrlPath)
-
-                    const mountPoint = node.path.resolve(
+                    const mountPoint = node.url.resolve(
                         this.mountPoint, node.path.relative(
                             this.controllerPath, ctrlPath
                         )
                     )
-
                     return {
                         root: filePath,
                         mountPoint: !_.isEqual(ctrlName, 'index')
@@ -233,8 +233,8 @@ class App {
 
                     _.forEach(methods, (actions, methodKey) => {
                         _.forEach(_.words(methodKey, /[^, ]+/g), (methodName, methodIndex) => {
-                            methodName = methodName.toLowerCase()
-                            const isAllowed = _.includes(allowedMethods, methodName)
+                            const lcMethodName = methodName.toLowerCase()
+                            const isAllowed = _.includes(allowedMethods, lcMethodName)
 
                             if (!isAllowed) {
                                 return
@@ -255,8 +255,17 @@ class App {
                                 })
                             }, this)
 
-                            return routerRoute[methodName](action)
+                            console.log(`${chalk[
+                                _.get({
+                                    HEAD: 'bgBlue',
+                                    GET: 'bgCyan',
+                                    POST: 'bgGreen',
+                                    PUT: 'bgMagenta',
+                                    DELETE: 'bgRed'
+                                }, methodName, 'bgBlackBright')
+                            ].whiteBright(methodName)} ${chalk.green('=>')} ${chalk.whiteBright(routePath)}`)
 
+                            return routerRoute[lcMethodName](action)
                         })
                     })
                 })
