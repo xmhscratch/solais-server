@@ -104,8 +104,6 @@ class Server extends System.Module {
         this._http = Server.Http.createServer(this._app)
         process.nextTick(() => {
             global.$appl = this._app
-            this._http.listen(this.port, this.hostname)
-
             return done()
         })
     }
@@ -130,7 +128,11 @@ class Server extends System.Module {
 
             console.log('Master cluster setting up ' + numWorkers + ' workers...')
         } else {
-            this.setup()
+            this.setup(() => {
+                this.http.listen(this.port, this.hostname, () => {
+                    console.info(`Solais server listening on ${this.hostname}:${this.port}`);
+                })
+            })
         }
 
         return this
