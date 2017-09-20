@@ -62,8 +62,8 @@ class App {
         return this._mountPoint
     }
 
-    get basePath() {
-        return this._basePath
+    get appPath() {
+        return this._appPath
     }
 
     get viewPath() {
@@ -86,9 +86,9 @@ class App {
         return this._controllers
     }
 
-    constructor(mountPoint, basePath) {
+    constructor(mountPoint, appPath) {
         this._mountPoint = mountPoint || '/'
-        this._basePath = fs(basePath).root
+        this._appPath = fs(appPath).root
 
         this._viewPath = this.getViewPath()
         this._controllerPath = this.getControllerPath()
@@ -156,7 +156,7 @@ class App {
         engine.get('/robots.txt', (req, res, next) => {
             res.type('text/plain')
 
-            let robotsFilePath = node.path.join(this.basePath, 'robots.txt')
+            let robotsFilePath = node.path.join(this.appPath, 'robots.txt')
             return node.fs.access(robotsFilePath, node.fs.R_OK | node.fs.W_OK, (error) => {
                 if (error) {
                     res.write("User-agent: *\n")
@@ -277,21 +277,21 @@ class App {
 
     getViewPath() {
         return fs(
-            this.basePath,
+            this.appPath,
             VIEW_PATH_NAME
         ).root
     }
 
     getControllerPath() {
         return fs(
-            this.basePath,
+            this.appPath,
             CONTROLLER_PATH_NAME
         ).root
     }
 
     getMiddwarePath() {
         return fs(
-            this.basePath,
+            this.appPath,
             CONTROLLER_PATH_NAME,
             'index.js'
         ).root
@@ -299,7 +299,7 @@ class App {
 
     getHelperPath() {
         return fs(
-            this.basePath,
+            this.appPath,
             HELPER_PATH_NAME
         ).root
     }
