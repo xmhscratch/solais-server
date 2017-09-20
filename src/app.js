@@ -263,7 +263,7 @@ class App {
                                     PUT: 'bgMagenta',
                                     DELETE: 'bgRed'
                                 }, methodName, 'bgBlackBright')
-                            ].whiteBright(methodName)} ${chalk.green('=>')} ${chalk.whiteBright(routePath)}`)
+                            ].magentaBright(methodName)} ${chalk.green('=>')} ${chalk.magentaBright(routePath)}`)
 
                             return routerRoute[lcMethodName](action)
                         })
