@@ -22,7 +22,8 @@ class Watcher extends node.events {
             }
 
             this.client.command([
-                'watch-project', this.rootPath
+                'watch', this.rootPath
+                // 'watch-project', this.rootPath
             ], (error, resp) => {
                 if (error) {
                     throw error

@@ -94,10 +94,10 @@ class App {
         this._controllerPath = this.getControllerPath()
         this._middwarePath = this.getMiddwarePath()
         this._helperPath = this.getHelperPath()
-        this._engine = this.createEngine()
-        this._controllers = this.createControllers()
 
+        this._engine = this.createEngine()
         this._loadMiddware(config('middwares', []))
+        this._loadControllers()
         this._registerHelper()
 
         return this._engine
@@ -126,17 +126,19 @@ class App {
         ))
 
         const defaultSecret = 'R7Ns5NgnHOaPwOf6G4tgG8Ik5PxB0dqC'
+        const serverSecret = config('server.secret', defaultSecret)
+        const useSecret = _.isEmpty(serverSecret) ? defaultSecret : serverSecret
 
         if (config('server.cookie')) {
             engine.use(App.CookieParser(
-                config('server.secret', defaultSecret),
+                useSecret,
                 config('server.cookie', false)
             ))
         }
 
         const defaultSession = {
             name: 'connect.sid',
-            secret: config('server.secret', defaultSecret),
+            secret: useSecret,
             resave: false,
             saveUninitialized: false
         }
@@ -184,8 +186,8 @@ class App {
         return engine
     }
 
-    createControllers() {
-        return _.chain(
+    _loadControllers() {
+        this._controllers = _.chain(
                 fs(this.controllerPath).getItems(/\.http\.js$/g)
             )
             .reduce((result, filePaths, path) => {
@@ -273,6 +275,8 @@ class App {
                 return this._engine.use(router)
             })
             .value()
+
+        return this._controllers
     }
 
     getViewPath() {

@@ -71,12 +71,27 @@ class Server extends System.Module {
     initialize(done) {
         global.$server = this
 
+        this._events = new node.events()
         this._hostname = config('server.hostname', DEFAULT_HOSTNAME)
         this._port = config('server.port', DEFAULT_PORT)
         this._appPath = this.getAppPath()
         this._faviconPath = this.getFaviconPath()
 
-        return this.setup(done)
+        global.$appl = this.setup()
+        this._events.on('restart', () => {
+            if (!this._http) {
+                return
+            }
+
+            // remove old app
+            this._http.removeListener('request', global.$appl)
+
+            // recreate new app and reload server
+            global.$appl = this.setup()
+            this._http.on('request', global.$appl)
+        })
+
+        process.nextTick(() => done())
     }
 
     getAppPath() {
@@ -90,22 +105,15 @@ class Server extends System.Module {
         ).root
     }
 
-    setup(done = _.noop) {
-        if (this._http) {
-            this._http.close()
-        }
+    setup() {
+        this._app = new Server.App('/', this.appPath)
+        this._app.set('port', this.port)
+        // this._app.use(Server.Favicon(this.faviconPath))
 
-        if (!this._app) {
-            this._app = new Server.App('/', this.appPath)
-            this._app.set('port', this.port)
-            // this._app.use(Server.Favicon(this.faviconPath))
+        if (!this._http) {
+            this._http = Server.Http.createServer(this._app)
         }
-
-        this._http = Server.Http.createServer(this._app)
-        process.nextTick(() => {
-            global.$appl = this._app
-            return done()
-        })
+        return this._app
     }
 
     start(isClusterMode = false) {
@@ -128,10 +136,9 @@ class Server extends System.Module {
 
             console.log('Master cluster setting up ' + numWorkers + ' workers...')
         } else {
-            this.setup(() => {
-                this.http.listen(this.port, this.hostname, () => {
-                    console.info(`Solais server listening on ${this.hostname}:${this.port}`);
-                })
+            this.setup()
+            this.http.listen(this.port, this.hostname, () => {
+                console.info(`Solais server listening on ${this.hostname}:${this.port}`);
             })
         }
 
@@ -139,12 +146,17 @@ class Server extends System.Module {
     }
 
     autoRefresh() {
+        const emitRestart = _.debounce(() => {
+            this._events.emit('restart')
+        }, 250)
+
         const watcher = new Server.Watcher(this.appPath)
         watcher.on('change', (filePath) => {
             delete require.cache[filePath]
-            this.setup()
+            emitRestart()
         })
         watcher.start()
+
         return this
     }
 }
