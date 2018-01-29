@@ -4,8 +4,6 @@ const HELPER_PATH_NAME = 'helper'
 
 const chalk = require('chalk')
 
-const IS_REG_EXP = /^regexp\(([gmixXsuUAJD]+)\)\:(.*)/g
-
 class App {
 
     //////////////////////////
@@ -228,22 +226,9 @@ class App {
                 }
 
                 _.forEach(rConfig, (methods, routeKey) => {
-                    let routePath = String('/')
-
-                    if (IS_REG_EXP.test(routeKey)) {
-                        const regGroup = new RegExp(IS_REG_EXP)
-                            .exec(routeKey)
-                            .splice(1)
-
-                        const regMode = regGroup[0]
-                        const regPath = regGroup[1]
-
-                        routePath = new RegExp(regPath, regMode)
-                    } else {
-                        routePath = node.path
-                            .join(item.mountPoint, routeKey)
-                            .replace(/([\/\\]+)/g, String('/'))
-                    }
+                    const routePath = node.path
+                        .join(item.mountPoint, routeKey)
+                        .replace(/([\/\\]+)/g, String('/'))
 
                     const routerRoute = router.route(routePath)
                     const allowedMethods = this._getRequestAllowedMethods()
