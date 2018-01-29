@@ -4,6 +4,8 @@ const HELPER_PATH_NAME = 'helper'
 
 const chalk = require('chalk')
 
+const IS_REG_EXP = /^regexp\(([gmixXsuUAJD]+)\)\:(.*)/g
+
 class App {
 
     //////////////////////////
@@ -188,8 +190,8 @@ class App {
 
     _loadControllers() {
         this._controllers = _.chain(
-                fs(this.controllerPath).getItems(/\.http\.js$/g)
-            )
+            fs(this.controllerPath).getItems(/\.http\.js$/g)
+        )
             .reduce((result, filePaths, path) => {
                 const routeFiles = _.map(filePaths, (filePath) => {
                     const ctrlPath = filePath
@@ -226,9 +228,22 @@ class App {
                 }
 
                 _.forEach(rConfig, (methods, routeKey) => {
-                    const routePath = node.path
-                        .join(item.mountPoint, routeKey)
-                        .replace(/([\/\\]+)/g, String('/'))
+                    let routePath = String('/')
+
+                    if (IS_REG_EXP.test(routeKey)) {
+                        const regGroup = new RegExp(IS_REG_EXP)
+                            .exec(routeKey)
+                            .splice(1)
+
+                        const regMode = regGroup[0]
+                        const regPath = regGroup[1]
+
+                        routePath = new RegExp(regPath, regMode)
+                    } else {
+                        routePath = node.path
+                            .join(item.mountPoint, routeKey)
+                            .replace(/([\/\\]+)/g, String('/'))
+                    }
 
                     const routerRoute = router.route(routePath)
                     const allowedMethods = this._getRequestAllowedMethods()
@@ -249,7 +264,7 @@ class App {
                             const action = _.last(actions)
 
                             _.forEach(filters, () => {
-                                routerRoute.all(function(req, res, next) {
+                                routerRoute.all(function (req, res, next) {
                                     const middwarePath = `${routeKey}.${methodKey}.${methodIndex}`
                                     const middwareFunc = _.get(require(item.root), middwarePath)
 
@@ -257,15 +272,15 @@ class App {
                                 })
                             }, this)
 
-                            console.log(`${chalk[
-                                _.get({
-                                    HEAD: 'bgBlue',
-                                    GET: 'bgCyan',
-                                    POST: 'bgGreen',
-                                    PUT: 'bgMagenta',
-                                    DELETE: 'bgRed'
-                                }, methodName, 'bgBlackBright')
-                            ].magentaBright(methodName)} ${chalk.green('=>')} ${chalk.magentaBright(routePath)}`)
+                            // console.log(`${chalk[
+                            //     _.get({
+                            //         HEAD: 'bgBlue',
+                            //         GET: 'bgCyan',
+                            //         POST: 'bgGreen',
+                            //         PUT: 'bgMagenta',
+                            //         DELETE: 'bgRed'
+                            //     }, methodName, 'bgBlackBright')
+                            // ].magentaBright(methodName)} ${chalk.green('=>')} ${chalk.magentaBright(routePath)}`)
 
                             return routerRoute[lcMethodName](action)
                         })
