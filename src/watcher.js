@@ -1,9 +1,10 @@
+const watchman = require('fb-watchman')
+
 class Watcher extends node.events {
 
     constructor(rootPath) {
         super()
 
-        const watchman = require('fb-watchman')
         this.client = new watchman.Client()
         this.rootPath = rootPath
 
