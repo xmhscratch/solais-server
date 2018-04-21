@@ -146,7 +146,7 @@ class Server extends System.Module {
     }
 
     autoRefresh() {
-        if (config('development', false)) {
+        if (_.isEqual(config('system.development'), false)) {
             return false
         }
 
