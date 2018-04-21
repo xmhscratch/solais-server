@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/xmhscratch/solais-server#readme",
   "devDependencies": {
-    "fb-watchman": "^2.0.0"
+    "fb-watchman": "^2.0.0",
+    "morgan": "^1.8.2"
   },
   "dependencies": {
     "body-parser": "^1.17.2",
@@ -28,7 +29,6 @@
     "express": "^4.15.4",
     "express-session": "^1.15.5",
     "html-minifier": "^3.5.3",
-    "morgan": "^1.8.2",
     "rebirth": "^1.0.2",
     "serve-favicon": "^2.4.3",
     "sitemap": "^1.13.0"
