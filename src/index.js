@@ -146,6 +146,10 @@ class Server extends System.Module {
     }
 
     autoRefresh() {
+        if (config('development', false)) {
+            return false
+        }
+
         const emitRestart = _.debounce(() => {
             this._events.emit('restart')
         }, 250)
