@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "private": true,
+  "publishConfig": {
+    "registry": "http://registry.cicd.claimh.com:6000/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xmhscratch/solais-server.git"
